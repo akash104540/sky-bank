@@ -1,0 +1,136 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidBankProfile(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 60 &&
+             data.bankName is string && data.bankName.size() >= 1 && data.bankName.size() <= 50 &&
+             data.cashBdt is int && data.cashBdt >= 0 && data.cashBdt <= 999999999 &&
+             data.debtBdt is int && data.debtBdt >= 0 && data.debtBdt <= 999999999 &&
+             data.energy is int && data.energy >= 0 && data.energy <= 200 &&
+             data.maxEnergy is int && data.maxEnergy >= 10 && data.maxEnergy <= 200 &&
+             data.level is int && data.level >= 1 && data.level <= 100 &&
+             data.xp is int && data.xp >= 0 && data.xp <= 10000000 &&
+             data.dayNumber is int && data.dayNumber >= 1 && data.dayNumber <= 99999 &&
+             data.minuteOfDay is int && data.minuteOfDay >= 0 && data.minuteOfDay <= 1440 &&
+             data.bankOwned is bool &&
+             data.bankUpgraded is bool &&
+             data.atmActive is bool &&
+             data.carShowroomUnlocked is bool &&
+             data.vaultLevel is int && data.vaultLevel >= 1 && data.vaultLevel <= 10 &&
+             data.counterCount is int && data.counterCount >= 1 && data.counterCount <= 6 &&
+             data.dailyRevenueBdt is int && data.dailyRevenueBdt >= 0 && data.dailyRevenueBdt <= 999999999 &&
+             data.dailyTargetBdt is int && data.dailyTargetBdt >= 1000 && data.dailyTargetBdt <= 999999999 &&
+             data.customersServed is int && data.customersServed >= 0 && data.customersServed <= 9999999 &&
+             data.fraudCaught is int && data.fraudCaught >= 0 && data.fraudCaught <= 9999999 &&
+             data.bankOpen is bool &&
+             data.introSeen is bool;
+    }
+
+    function isValidBankTransaction(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.customerName is string && data.customerName.size() >= 1 && data.customerName.size() <= 60 &&
+             data.accountNo is string && data.accountNo.size() >= 1 && data.accountNo.size() <= 30 &&
+             data.txType in ['DEPOSIT', 'WITHDRAW', 'CAR_FINANCE', 'FRAUD_REJECTED', 'UPGRADE', 'DEBT_PAYMENT', 'ATM_FEE'] &&
+             data.amountBdt is int && data.amountBdt >= 0 && data.amountBdt <= 999999999 &&
+             data.commissionBdt is int && data.commissionBdt >= 0 && data.commissionBdt <= 999999999 &&
+             data.dayNumber is int && data.dayNumber >= 1 && data.dayNumber <= 99999 &&
+             data.success is bool;
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow list: if isOwner(userId);
+
+      allow create: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll([
+                         'userId', 'displayName', 'bankName', 'cashBdt', 'debtBdt',
+                         'energy', 'maxEnergy', 'level', 'xp', 'dayNumber', 'minuteOfDay',
+                         'bankOwned', 'bankUpgraded', 'atmActive', 'carShowroomUnlocked',
+                         'vaultLevel', 'counterCount', 'dailyRevenueBdt', 'dailyTargetBdt',
+                         'customersServed', 'fraudCaught', 'bankOpen', 'introSeen',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'displayName', 'bankName', 'cashBdt', 'debtBdt',
+                         'energy', 'maxEnergy', 'level', 'xp', 'dayNumber', 'minuteOfDay',
+                         'bankOwned', 'bankUpgraded', 'atmActive', 'carShowroomUnlocked',
+                         'vaultLevel', 'counterCount', 'dailyRevenueBdt', 'dailyTargetBdt',
+                         'customersServed', 'fraudCaught', 'bankOpen', 'introSeen',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().createdAt is timestamp &&
+                       incoming().createdAt <= request.time &&
+                       incoming().updatedAt is timestamp &&
+                       incoming().updatedAt <= request.time &&
+                       isValidBankProfile(incoming());
+
+      allow update: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().updatedAt is timestamp &&
+                       incoming().updatedAt <= request.time &&
+                       isValidBankProfile(incoming()) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'displayName', 'bankName', 'cashBdt', 'debtBdt',
+                         'energy', 'maxEnergy', 'level', 'xp', 'dayNumber', 'minuteOfDay',
+                         'bankOwned', 'bankUpgraded', 'atmActive', 'carShowroomUnlocked',
+                         'vaultLevel', 'counterCount', 'dailyRevenueBdt', 'dailyTargetBdt',
+                         'customersServed', 'fraudCaught', 'bankOpen', 'introSeen',
+                         'updatedAt'
+                       ]);
+
+      allow delete: if isOwner(userId) && isValidId(userId);
+
+      match /transactions/{txId} {
+        allow get: if isOwner(userId) && isValidId(txId);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) &&
+                         isValidId(txId) &&
+                         incoming().userId == request.auth.uid &&
+                         incoming().keys().hasAll([
+                           'userId', 'customerName', 'accountNo', 'txType',
+                           'amountBdt', 'commissionBdt', 'dayNumber', 'success', 'createdAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'customerName', 'accountNo', 'txType',
+                           'amountBdt', 'commissionBdt', 'dayNumber', 'success', 'createdAt'
+                         ]) &&
+                         incoming().createdAt is timestamp &&
+                         incoming().createdAt <= request.time &&
+                         isValidBankTransaction(incoming());
+
+        allow update: if false;
+        allow delete: if isOwner(userId) && isValidId(txId);
+      }
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "ইস্কাই ব্যাংক",
+  "description": "বাংলাদেশি 3D ব্যাংক সিমুলেটর গেম — আপনার নিজস্ব ইস্কাই ব্যাংক পরিচালনা করুন, গ্রাহকদের এনআইডি যাচাই করুন, টাকা লেনদেন করুন এবং ব্যাংক আপগ্রেড করুন।",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

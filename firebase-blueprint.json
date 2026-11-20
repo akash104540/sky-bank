@@ -1,0 +1,206 @@
+{
+  "entities": {
+    "BankProfile": {
+      "title": "BankProfile",
+      "description": "Player's Sky Bank tycoon simulation save state",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Player display name"
+        },
+        "bankName": {
+          "type": "string",
+          "description": "Name of the bank (e.g., ইস্কাই ব্যাংক)"
+        },
+        "cashBdt": {
+          "type": "integer",
+          "description": "Current bank cash balance in BDT"
+        },
+        "debtBdt": {
+          "type": "integer",
+          "description": "Remaining bank debt in BDT"
+        },
+        "energy": {
+          "type": "integer",
+          "description": "Current player stamina/energy"
+        },
+        "maxEnergy": {
+          "type": "integer",
+          "description": "Maximum player stamina/energy"
+        },
+        "level": {
+          "type": "integer",
+          "description": "Bank manager level"
+        },
+        "xp": {
+          "type": "integer",
+          "description": "Experience points toward next level"
+        },
+        "dayNumber": {
+          "type": "integer",
+          "description": "Current in-game business day"
+        },
+        "minuteOfDay": {
+          "type": "integer",
+          "description": "In-game clock minutes since midnight"
+        },
+        "bankOwned": {
+          "type": "boolean",
+          "description": "Whether the player completed the bank purchase deal"
+        },
+        "bankUpgraded": {
+          "type": "boolean",
+          "description": "Whether the initial interior renovation is complete"
+        },
+        "atmActive": {
+          "type": "boolean",
+          "description": "Whether the ATM machine is powered on"
+        },
+        "carShowroomUnlocked": {
+          "type": "boolean",
+          "description": "Whether the Car Finance showroom wing is unlocked"
+        },
+        "vaultLevel": {
+          "type": "integer",
+          "description": "Vault security upgrade tier (1-5)"
+        },
+        "counterCount": {
+          "type": "integer",
+          "description": "Active teller counters count (1-4)"
+        },
+        "dailyRevenueBdt": {
+          "type": "integer",
+          "description": "Revenue collected on the current day"
+        },
+        "dailyTargetBdt": {
+          "type": "integer",
+          "description": "Daily target goal in BDT"
+        },
+        "customersServed": {
+          "type": "integer",
+          "description": "Total genuine customers served"
+        },
+        "fraudCaught": {
+          "type": "integer",
+          "description": "Total fraudulent NIDs rejected"
+        },
+        "bankOpen": {
+          "type": "boolean",
+          "description": "Whether the front sliding door sign is OPEN"
+        },
+        "introSeen": {
+          "type": "boolean",
+          "description": "Whether the opening debt cutscene was viewed"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server last-updated timestamp"
+        }
+      },
+      "required": [
+        "userId",
+        "displayName",
+        "bankName",
+        "cashBdt",
+        "debtBdt",
+        "energy",
+        "maxEnergy",
+        "level",
+        "xp",
+        "dayNumber",
+        "minuteOfDay",
+        "bankOwned",
+        "bankUpgraded",
+        "atmActive",
+        "carShowroomUnlocked",
+        "vaultLevel",
+        "counterCount",
+        "dailyRevenueBdt",
+        "dailyTargetBdt",
+        "customersServed",
+        "fraudCaught",
+        "bankOpen",
+        "introSeen",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "BankTransaction": {
+      "title": "BankTransaction",
+      "description": "Individual teller or ATM transaction log entry",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID"
+        },
+        "customerName": {
+          "type": "string",
+          "description": "Bangladeshi customer name"
+        },
+        "accountNo": {
+          "type": "string",
+          "description": "Customer account number"
+        },
+        "txType": {
+          "type": "string",
+          "enum": ["DEPOSIT", "WITHDRAW", "CAR_FINANCE", "FRAUD_REJECTED", "UPGRADE", "DEBT_PAYMENT", "ATM_FEE"],
+          "description": "Type of banking transaction"
+        },
+        "amountBdt": {
+          "type": "integer",
+          "description": "Principal transaction amount in BDT"
+        },
+        "commissionBdt": {
+          "type": "integer",
+          "description": "Bank profit or bonus earned in BDT"
+        },
+        "dayNumber": {
+          "type": "integer",
+          "description": "In-game day number"
+        },
+        "success": {
+          "type": "boolean",
+          "description": "Whether transaction succeeded cleanly"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of transaction"
+        }
+      },
+      "required": [
+        "userId",
+        "customerName",
+        "accountNo",
+        "txType",
+        "amountBdt",
+        "commissionBdt",
+        "dayNumber",
+        "success",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/BankProfile" },
+      "description": "User's Sky Bank Simulator game save state"
+    },
+    "/users/{userId}/transactions/{txId}": {
+      "schema": { "$ref": "#/entities/BankTransaction" },
+      "description": "Chronological ledger of customer and upgrade transactions"
+    }
+  }
+}
